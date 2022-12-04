@@ -13,7 +13,6 @@ def part1(_input: str) -> int:
 			) + 1 for line in file.readlines()
 		))
 
-
 def part2(_input: str) -> int:
 	with open(_input, "r", encoding="UTF-8") as file:
 		return floor(sum(BSF(
