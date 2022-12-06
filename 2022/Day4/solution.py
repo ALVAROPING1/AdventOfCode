@@ -7,7 +7,7 @@ def part2(_input: str) -> int:
 		return sum(rangeOverlap(*map(int, line.replace(",", "-").split("-"))) for line in file.readlines())
 
 def rangeIsSubset(start1: int, end1: int, start2: int, end2: int) -> bool:
-	return start1 == start2 or end1 == end2 or (start1 > start2) == (end1 < end2)
+	return 1 > ((start1 - start2) * (end1 - end2))
 
 def rangeOverlap(start1: int, end1: int, start2: int, end2: int) -> bool:
 	return start1 <= end2 and start2 <= end1
