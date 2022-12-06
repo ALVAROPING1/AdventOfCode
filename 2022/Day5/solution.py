@@ -1,6 +1,6 @@
 from itertools import takewhile
 
-def part1(_input: str) -> int:
+def part1(_input: str) -> str:
 	with open(_input, "r", encoding="UTF-8") as file:
 		stack_str, moves_str = file.read().split("\n\n")
 		stack_lines = stack_str.split("\n")[:-1]
@@ -12,7 +12,7 @@ def part1(_input: str) -> int:
 			del stacks[stack_number][-stack_size:]
 		return "".join(stack[-1] for stack in stacks)
 
-def part2(_input: str) -> int:
+def part2(_input: str) -> str:
 	with open(_input, "r", encoding="UTF-8") as file:
 		stack_str, moves_str = file.read().split("\n\n")
 		stack_lines = stack_str.split("\n")[:-1]
