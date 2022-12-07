@@ -6,19 +6,16 @@ def part2(_input: str) -> int:
 
 def solve(_input: str, max_size: int) -> int:
 	with open(_input, "r", encoding="UTF-8") as file:
-		stream = file.read()
-		window_size = 1
-		window_start = None
-		for window_end, char in enumerate(stream[1:]):
-			new_size = 0
-			for previousChar in stream[window_end:window_start:-1]:
-				if char != previousChar: new_size += 1
-				else:
-					window_start = window_end - new_size
-					break
-			window_size = new_size + 1
-			if window_size == max_size:
-				return window_end + 2
+		stream = file.read()[:-1]
+		window_start = 0
+		last_seen = {char: 0 for char in "abcdefghijklmnopqrstuvwxyz"}
+		for index, char in enumerate(stream):
+			last_seen_index = last_seen[char]
+			if last_seen_index > window_start:
+				window_start = last_seen_index
+			elif index + 1 - window_start >= max_size:
+				return index + 1
+			last_seen[char] = index + 1
 
 _input = "./2022/Day6/input.txt"
 
