@@ -1,7 +1,6 @@
 import heapq
 from typing import Callable
 
-
 def part1(_input: str) -> int:
 	with open(_input, "r", encoding="UTF-8") as file:
 		lines = file.readlines()
@@ -15,9 +14,17 @@ def part2(_input: str) -> int:
 	priority_queue = []
 	used_size, _ = calculate_dir_size(lines, len(lines), 1, add_dir_size_queue, priority_queue)
 	required_size = 30_000_000 - (70_000_000 - used_size)
-	while priority_queue:
-		dir_size = heapq.heappop(priority_queue)
-		if dir_size >= required_size: return dir_size
+	sorted_sizes = sorted(priority_queue)
+	return binary_search(sorted_sizes, required_size, 0, len(sorted_sizes) - 1)
+
+def binary_search(_list: list[int], value: int, start: int, end: int) -> int:
+	middle = start + (end - start) // 2
+	current_value = _list[middle]
+	if current_value == value or start == end:
+		return current_value
+	if current_value > value:
+		return binary_search(_list, value, start, middle - 1)
+	return binary_search(_list, value, middle + 1, end)
 
 class TotalSum():
 	def __init__(self, value: int = 0) -> None:
@@ -49,7 +56,6 @@ def calculate_dir_size(lines: list[str], len_lines: int, index: int, current_dir
 			first_word = line.split(" ", maxsplit=1)[0]
 			if first_word[0] != "d":
 				current_dir_size += int(first_word)
-	
 
 _input = "./2022/Day7/input.txt"
 
