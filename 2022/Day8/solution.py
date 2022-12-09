@@ -1,18 +1,15 @@
-def part1(_input: str) -> int:
+def part1(_input: str =  "./2022/Day8/input.txt") -> int:
 	with open(_input, "r", encoding="UTF-8") as file:
 		trees = tuple(tuple(map(int, tuple(x[:-1]))) for x in file.readlines())
 		len_line = len(trees[0])
 		len_column = len(trees)
 		visible_matrix = [[False for _ in range(len_line)] for _ in range(len_column)]
-		visible_total = 0
-		for index in range(len_column):
-			visible_total += sum((
+		return sum(sum((
 				check_visible(trees, visible_matrix, True, range(len_line), index),
 				check_visible(trees, visible_matrix, True, range(len_line-1, -1, -1), index),
 				check_visible(trees, visible_matrix, False, range(len_column), index),
 				check_visible(trees, visible_matrix, False, range(len_column-1, -1, -1), index)
-			))
-		return visible_total
+			)) for index in range(len_column))
 
 def check_visible(trees: list[list[int]], visible_matrix: list[int], line: bool, range_object: range, fixed: int) -> int:
 	total_visible = 0
@@ -24,6 +21,8 @@ def check_visible(trees: list[list[int]], visible_matrix: list[int], line: bool,
 			if not get_matrix_value(visible_matrix, fixed, index, line):
 				set_matrix_value(visible_matrix, fixed, index, line, True)
 				total_visible += 1
+			if current_tree == 9:
+				break
 	return total_visible
 
 def get_matrix_value(matrix: list[list], fixed: int, index: int, line: bool) -> int:
@@ -36,5 +35,8 @@ def set_matrix_value(matrix: list[list], fixed: int, index: int, line: bool, val
 
 _input = "./2022/Day8/input.txt"
 
-print("Part 1:", part1(_input))
+from timeit import timeit
+
+print(part1())
+print("Part 1:", timeit(part1, number=2000))
 #print("Part 2:", part2(_input))
