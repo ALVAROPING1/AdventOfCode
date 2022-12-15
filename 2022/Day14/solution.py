@@ -1,9 +1,8 @@
 from itertools import chain
-from time import sleep
 
 def part1(_input: str) -> int:
 	sand_spawn = (500, 0)
-	scan, minX, minY = parse_input(_input, sand_spawn, 0, 0, 0)
+	scan, minX, minY = parse_input(_input, sand_spawn, False)
 	count = 0
 	sand_spawn_reduced = (sand_spawn[0] - minX, sand_spawn[1] - minY)
 	while spawn_sand(*sand_spawn_reduced, scan):
@@ -12,7 +11,7 @@ def part1(_input: str) -> int:
 
 def part2(_input: str) -> int:
 	sand_spawn = (500, 0)
-	scan, minX, minY = parse_input(_input, sand_spawn, 90, 155, 2)
+	scan, minX, minY = parse_input(_input, sand_spawn, True)
 	for column in scan:
 		column[len(scan[0]) - 1] = False
 	count = 0
@@ -25,11 +24,16 @@ def part2(_input: str) -> int:
 	#print("================================================================================================================")
 	return count
 
-def parse_input(_input: str, sand_spawn: tuple[int, int], extendXNegative: int, extendXPositive: int, extendY: int) -> tuple[list[list[bool]], int, int]:
+def parse_input(_input: str, sand_spawn: tuple[int, int], extendGrid: bool) -> tuple[list[list[bool]], int, int]:
 	with open(_input, "r", encoding="UTF-8") as file:
 		paths = tuple((tuple((int(point[:3]), int(point[4:])) for point in line.split(" -> "))) for line in file.readlines())
 	points = tuple(zip(*chain.from_iterable(paths), sand_spawn))
-	maxX, minX, maxY, minY = max(points[0]) + extendXPositive, min(points[0]) - extendXNegative, max(points[1]) + extendY, min(points[1])
+	maxX, minX, maxY, minY = max(points[0]), min(points[0]), max(points[1]), min(points[1])
+	if extendGrid:
+		maxY += 2
+		deltaY = maxY - sand_spawn[1]
+		minX = min(minX, sand_spawn[0] - deltaY)
+		maxX = max(maxX, sand_spawn[0] + deltaY)
 	scan = [[True for _ in range(maxY - minY + 1)] for _ in range(maxX - minX + 1)]
 	for path in paths:
 		previous = path[0]
