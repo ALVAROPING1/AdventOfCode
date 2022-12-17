@@ -28,6 +28,7 @@ def part2(_input: str) -> int:
 		scanned_positions = check_y_coordinate(sensors, ranges, y_coordinate)
 		if not scanned_positions.check_full_range(0, max_signal_position):
 			return scanned_positions.get_missing_point() * 4_000_000 + y_coordinate
+
 class ScannedPositions:
 	def __init__(self) -> None:
 		self.ranges = []
