@@ -4,11 +4,11 @@ from itertools import product
 
 def part1(_input: str) -> int:
 	graph, vertex_values = parse_input(_input)
-	return DFT(graph, {v: False for v in vertex_values}, "AA", vertex_values, 30)
+	return DFT(graph, {v: False for v in vertex_values}, "AA", vertex_values, 30, False, 12, 14)
 
 def part2(_input: str) -> int:
 	graph, vertex_values = parse_input(_input)
-	return DFT_pairs(graph, {v: False for v in vertex_values}, "AA", vertex_values, 26)
+	return DFT(graph, {v: False for v in vertex_values}, "AA", vertex_values, 26, True, 6, 7, 12, 14)
 
 
 def parse_input(_input: str) -> tuple[dict[str, dict[str, int]], dict[str, int]]:
@@ -58,49 +58,40 @@ def DFT(
 	visited: dict[str, bool],
 	start_vertex: str,
 	vertex_values: dict[str, int],
-	start_time: int
+	start_time: int,
+	test_second_path: bool,
+	min_flow_1: int,
+	min_time_1: int,
+	min_flow_2: int = 0,
+	min_time_2: int = 0
 ) -> int:
 	max_pressure = 0
 	stack = [(start_vertex, 0, max_pressure, start_time, visited)]
 	while stack:
 		current_vertex, pressure_production, current_pressure, time, visited = stack.pop()
 		visited[current_vertex] = True
-		max_pressure = max(max_pressure, current_pressure + pressure_production * time)
-		for adjacent in graph[current_vertex].keys():
-			if not visited[adjacent] and time > graph[current_vertex][adjacent]:
-				stack.append((
-					adjacent,
-					pressure_production + vertex_values[adjacent],
-					current_pressure + pressure_production * (graph[current_vertex][adjacent] + 1),
-					time - graph[current_vertex][adjacent] - 1,
-					visited.copy()
-				))
-	return max_pressure
-
-def DFT_pairs(
-	graph: dict[str, dict[str, int]],
-	visited: dict[str, bool],
-	start_vertex: str,
-	vertex_values: dict[str, int],
-	start_time: int
-) -> int:
-	max_pressure = 0
-	stack = [(start_vertex, 0, max_pressure, start_time, visited)]
-	while stack:
-		current_vertex, pressure_production, current_pressure, time, visited = stack.pop()
-		visited[current_vertex] = True
-		max_pressure = max(
-			max_pressure,
-			current_pressure + pressure_production * time + DFT(
-				graph,
-				visited.copy(),
-				start_vertex,
-				vertex_values,
-				start_time
+		if test_second_path:
+			max_pressure = max(
+				max_pressure,
+				current_pressure + pressure_production * time + DFT(
+					graph,
+					visited.copy(),
+					start_vertex,
+					vertex_values,
+					start_time,
+					False,
+					min_flow_2,
+					min_time_2
+				)
 			)
-		)
+		else:
+			max_pressure = max(max_pressure, current_pressure + pressure_production * time)
 		for adjacent in graph[current_vertex].keys():
-			if not visited[adjacent] and time > graph[current_vertex][adjacent]:
+			if (
+				not visited[adjacent]
+				and time > graph[current_vertex][adjacent]
+				and (vertex_values[adjacent] >= min_flow_1 or time < min_time_1)
+			):
 				stack.append((
 					adjacent,
 					pressure_production + vertex_values[adjacent],
