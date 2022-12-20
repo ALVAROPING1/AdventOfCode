@@ -1,64 +1,68 @@
 from typing import Iterable
 from collections import deque
-from copy import deepcopy
 
 def part1(_input: str) -> int:
-	_map = [[[False for _ in range(22)] for _ in range(22)] for _ in range(22)]
+	map_size = 22
 	with open(_input, "r", encoding="UTF-8") as file:
-		return calculate_surface_area(
-			_map,
-			(map(int, cube[:-1].split(",")) for cube in file.readlines())
-		)
+		cubes = tuple(tuple(map(int, cube[:-1].split(","))) for cube in file.readlines())
+	map_lava = process_cubes(cubes, map_size)
+	return calculate_surface_area(map_lava, cubes)
 
 def part2(_input: str) -> int:
-	map_lava = [[[False for _ in range(22)] for _ in range(22)] for _ in range(22)]
-	map_steam = deepcopy(map_lava)
-	map_air = deepcopy(map_lava)
+	map_size = 22
 	with open(_input, "r", encoding="UTF-8") as file:
-		maximum_area = calculate_surface_area(
-			map_lava,
-			(map(int, cube[:-1].split(",")) for cube in file.readlines())
+		map_lava = process_cubes(
+			(map(int, cube[:-1].split(",")) for cube in file.readlines()),
+			map_size
 		)
-	queue = deque()
-	queue.append((0,0,0))
-	total_steam = 0
-	while queue:
-		x, y, z = queue.popleft()
-		for _x, _y, _z in (
-				(x+1, y, z),
-				(x-1, y, z),
-				(x, y+1, z),
-				(x, y-1, z),
-				(x, y, z+1),
-				(x, y, z-1)
-		):
-			if (
-				0 <= _x < 22
-				and 0 <= _y < 22
-				and 0 <= _z < 22
-				and not map_steam[_x][_y][_z]
-				and not map_lava[_x][_y][_z]
-			):
-				queue.append((_x, _y, _z))
-				map_steam[_x][_y][_z] = True
-				total_steam += 1
-	return
+	return calculate_external_surface_area(map_lava, map_size)
 
-def calculate_surface_area(_map: list[list[list[int]]], cubes: Iterable) -> int:
+def process_cubes(cubes: Iterable, map_size: int) -> tuple[tuple[tuple[bool]]]:
+	_map = [[[False for _ in range(map_size)] for _ in range(map_size)] for _ in range(map_size)]
+	for x,y,z in cubes:
+		_map[x+1][y+1][z+1] = True
+	return _map
+
+def calculate_surface_area(_map: list[list[list[bool]]], cubes: Iterable) -> int:
 	surface_area = 0
 	for x,y,z in cubes:
-		surface_area += 6 - 2 * sum(
-			_map[_x+1][_y+1][_z+1] for _x, _y, _z in (
-				(x+1, y, z),
-				(x-1, y, z),
-				(x, y+1, z),
-				(x, y-1, z),
-				(x, y, z+1),
-				(x, y, z-1)
-			)
+		surface_area += 6 - sum(
+			_map[_x+1][_y+1][_z+1] for _x, _y, _z in get_adjacent_points(x, y, z)
 		)
-		_map[x+1][y+1][z+1] = True
 	return surface_area
+
+def calculate_external_surface_area(
+	map_lava: tuple[tuple[tuple[bool]]],
+	map_size: int
+) -> int:
+	map_steam = [[[False for _ in range(map_size)] for _ in range(map_size)] for _ in range(map_size)]
+	queue = deque([(0,0,0)])
+	surface_area = 0
+	while queue:
+		x, y, z = queue.popleft()
+		for _x, _y, _z in get_adjacent_points(x, y, z):
+			if (
+				0 <= _x < map_size
+				and 0 <= _y < map_size
+				and 0 <= _z < map_size
+				and not map_steam[_x][_y][_z]
+			):
+				if not map_lava[_x][_y][_z]:
+					queue.append((_x, _y, _z))
+					map_steam[_x][_y][_z] = True
+				else:
+					surface_area += 1
+	return surface_area
+
+def get_adjacent_points(x: int, y: int, z: int):
+	return (
+		(x+1, y, z),
+		(x-1, y, z),
+		(x, y+1, z),
+		(x, y-1, z),
+		(x, y, z+1),
+		(x, y, z-1)
+	)
 
 _input = "./2022/Day18/input.txt"
 
