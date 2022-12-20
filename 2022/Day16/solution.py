@@ -10,7 +10,6 @@ def part2(_input: str) -> int:
 	graph, vertex_values = parse_input(_input)
 	return DFT(graph, {v: False for v in vertex_values}, "AA", vertex_values, 26, True, 6, 7, 12, 14)
 
-
 def parse_input(_input: str) -> tuple[dict[str, dict[str, int]], dict[str, int]]:
 	graph = {}
 	vertex_values = {}
@@ -25,7 +24,6 @@ def parse_input(_input: str) -> tuple[dict[str, dict[str, int]], dict[str, int]]
 	calculate_distance_matrix(graph, vertex_values.keys())
 	remove_stuck_valves(graph, vertex_values)
 	return graph, vertex_values
-
 
 def calculate_distance_matrix(graph: dict[str, dict[str, int]], vertices: tuple[str]):
 	for k, i, j in product(vertices, repeat=3):

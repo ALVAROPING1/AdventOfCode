@@ -24,9 +24,18 @@ def part2(_input: str) -> int:
 	#print("================================================================================================================")
 	return count
 
-def parse_input(_input: str, sand_spawn: tuple[int, int], extendGrid: bool) -> tuple[list[list[bool]], int, int]:
+def parse_input(
+	_input: str,
+	sand_spawn: tuple[int, int],
+	extendGrid: bool
+) -> tuple[list[list[bool]], int, int]:
 	with open(_input, "r", encoding="UTF-8") as file:
-		paths = tuple((tuple((int(point[:3]), int(point[4:])) for point in line.split(" -> "))) for line in file.readlines())
+		paths = tuple((
+			tuple((
+				int(point[:3]),
+				int(point[4:])
+			) for point in line.split(" -> "))
+		) for line in file.readlines())
 	points = tuple(zip(*chain.from_iterable(paths), sand_spawn))
 	maxX, minX, maxY, minY = max(points[0]), min(points[0]), max(points[1]), min(points[1])
 	if extendGrid:
@@ -49,7 +58,6 @@ def parse_input(_input: str, sand_spawn: tuple[int, int], extendGrid: bool) -> t
 					scan[point][end_point[1] - minY] = False
 			previous = end_point
 	return scan, minX, minY
-
 
 def spawn_sand(x: int, y: int, scan: list[list[bool]]) -> bool:
 	try:
