@@ -1,6 +1,7 @@
 from heapq import nlargest
 from operator import mul
 from functools import reduce
+from typing import Iterator
 
 def part1(_input: str) -> int:
 	return solve(_input, 20, True)
@@ -49,8 +50,8 @@ class Monkey:
 				self.operation = lambda x: x * int(operation_value)
 		self.test_value = test_value
 		self.test_result = test_result
-	
-	def evaluate_items(self) -> tuple[int, int]:
+
+	def evaluate_items(self) -> Iterator[tuple[int, int]]:
 		for item in self.items:
 			item_value = self.operation(item)
 			yield (item_value, self.test_result[item_value % self.test_value == 0])
