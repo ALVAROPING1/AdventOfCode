@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 from re import search, finditer
-from itertools import permutations
+from itertools import permutations, combinations
 
 def part1(_input: str) -> int:
 	graph = Graph.from_file(_input)
-	return graph.DFT({v: v == "AA" for v in graph.vertices}, "AA", 30, 1, 12, 14)
+	return graph.get_max_pressure("AA", 30, 12, 14)[0]
 
 def part2(_input: str) -> int:
 	graph = Graph.from_file(_input)
-	return graph.DFT({v: v == "AA" for v in graph.vertices}, "AA", 26, 2, 6, 7, 12, 14)
+	return get_max_2_partition(graph.get_max_pressure("AA", 26, 6, 7)[1])
 
 @dataclass
 class Graph:
@@ -61,50 +61,43 @@ class Graph:
 				except KeyError:
 					continue
 
-	def DFT(
+	def get_max_pressure(
 		self,
-		visited: dict[str, bool],
 		start_vertex: str,
 		start_time: int,
-		explorers: int,
 		min_flow_1: int,
 		min_time_1: int,
-		min_flow_2: int = 0,
-		min_time_2: int = 0
-	) -> int:
+	) -> tuple[int, dict[frozenset[str], int]]:
 		max_pressure = 0
+		max_pressure_dict = {}
+		visited = frozenset()
 		stack = [(start_time, visited, start_vertex, max_pressure)]
 		while stack:
 			time, visited, current_vertex, current_pressure = stack.pop()
-			visited[current_vertex] = True
-			finished = True
+			max_pressure = max(max_pressure, current_pressure)
+			if visited not in max_pressure_dict or max_pressure_dict[visited] < current_pressure:
+				max_pressure_dict[visited] = current_pressure
 			for adjacent in self.edges[current_vertex]:
 				if (
-					not visited[adjacent]
+					adjacent not in visited
 					and time > self.edges[current_vertex][adjacent]
 					and (self.vertex_values[adjacent] >= min_flow_1 or time < min_time_1)
 				):
 					new_time = time - self.edges[current_vertex][adjacent] - 1
 					stack.append((
 						new_time,
-						visited.copy(),
+						visited | frozenset({adjacent}),
 						adjacent,
 						current_pressure + (self.vertex_values[adjacent]) * new_time
 					))
-					finished = False
-			if explorers > 1 and finished:
-				max_pressure = max(max_pressure, current_pressure + self.DFT(
-						visited,
-						start_vertex,
-						start_time,
-						explorers - 1,
-						min_flow_2,
-						min_time_2
-					)
-				)
-			else:
-				max_pressure = max(max_pressure, current_pressure)
-		return max_pressure
+		return max_pressure, max_pressure_dict
+
+def get_max_2_partition(_dict: dict[frozenset[str], int]) -> int:
+	max_value = 0
+	for key1, key2 in combinations(_dict, r=2):
+		if key1 & key2 == set():
+			max_value = max(max_value, _dict[key1] + _dict[key2])
+	return max_value
 
 _input = "./2022/Day16/input.txt"
 
