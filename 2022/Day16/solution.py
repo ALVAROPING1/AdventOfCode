@@ -1,103 +1,110 @@
-from math import inf
+from dataclasses import dataclass
 from re import search, finditer
-from itertools import product
+from itertools import permutations
 
 def part1(_input: str) -> int:
-	graph, vertex_values = parse_input(_input)
-	return DFT(graph, {v: False for v in vertex_values}, "AA", vertex_values, 30, False, 12, 14)
+	graph = Graph.from_file(_input)
+	return graph.DFT({v: v == "AA" for v in graph.vertices}, "AA", 30, 1, 12, 14)
 
 def part2(_input: str) -> int:
-	graph, vertex_values = parse_input(_input)
-	return DFT(graph, {v: False for v in vertex_values}, "AA", vertex_values, 26, True, 6, 7, 12, 14)
+	graph = Graph.from_file(_input)
+	return graph.DFT({v: v == "AA" for v in graph.vertices}, "AA", 26, 2, 6, 7, 12, 14)
 
-def parse_input(_input: str) -> tuple[dict[str, dict[str, int]], dict[str, int]]:
-	graph = {}
-	vertex_values = {}
-	with open(_input, "r", encoding="UTF-8") as file:
-		for valve in file.readlines():
-			current = valve[6:8]
-			vertex_values[current] = int(search(r"\d+", valve[23:25]).group())
-			graph[current] = {}
-			graph[current][current] = 0
-			for end in finditer(r"[A-Z][A-Z]", valve[49:]):
-				graph[current][end.group()] = 1
-	calculate_distance_matrix(graph, vertex_values.keys())
-	remove_stuck_valves(graph, vertex_values)
-	return graph, vertex_values
+@dataclass
+class Graph:
+	edges: dict[str, dict[str, int]]
+	vertex_values: dict[str, int]
 
-def calculate_distance_matrix(graph: dict[str, dict[str, int]], vertices: tuple[str]):
-	for k, i, j in product(vertices, repeat=3):
+	@property
+	def vertices(self) -> tuple[str]:
+		return self.vertex_values.keys()
+
+	def get_edge_weight(self, start: str, end: str) -> int:
 		try:
-			current_shortest = graph[i][j]
+			return self.edges[start][end]
 		except KeyError:
-			current_shortest = inf
-		try:
-			new_path = graph[i][k] + graph[k][j]
-		except KeyError:
-			new_path = inf
-		graph[i][j] = min(current_shortest, new_path)
+			return 100000
 
-def remove_stuck_valves(graph: dict[str, dict[str, int]], vertex_values: dict[str, int]):
-	for vertex, value in vertex_values.copy().items():
-		if value != 0:
-			continue
-		for end in graph[vertex].copy().keys():
-			del graph[end][vertex]
-		if vertex != "AA":
-			del graph[vertex]
-			del vertex_values[vertex]
-			try:
-				del graph["AA"][vertex]
-			except KeyError:
-				continue
+	@classmethod
+	def from_file(cls, _input: str) -> "Graph":
+		graph = cls({}, {})
+		with open(_input, "r", encoding="UTF-8") as file:
+			for valve in file.readlines():
+				current = valve[6:8]
+				graph.vertex_values[current] = int(search(r"\d+", valve[23:25]).group())
+				graph.edges[current] = {}
+				graph.edges[current][current] = 0
+				for end in finditer(r"[A-Z][A-Z]", valve[49:]):
+					graph.edges[current][end.group()] = 1
+		graph.convert_to_distance_matrix()
+		graph.remove_stuck_valves()
+		return graph
 
-def DFT(
-	graph: dict[str, dict[str, int]],
-	visited: dict[str, bool],
-	start_vertex: str,
-	vertex_values: dict[str, int],
-	start_time: int,
-	test_second_path: bool,
-	min_flow_1: int,
-	min_time_1: int,
-	min_flow_2: int = 0,
-	min_time_2: int = 0
-) -> int:
-	max_pressure = 0
-	stack = [(start_vertex, 0, max_pressure, start_time, visited)]
-	while stack:
-		current_vertex, pressure_production, current_pressure, time, visited = stack.pop()
-		visited[current_vertex] = True
-		if test_second_path:
-			max_pressure = max(
-				max_pressure,
-				current_pressure + pressure_production * time + DFT(
-					graph,
-					visited.copy(),
-					start_vertex,
-					vertex_values,
-					start_time,
-					False,
-					min_flow_2,
-					min_time_2
-				)
+	def convert_to_distance_matrix(self):
+		for k, i, j in permutations(self.vertices, r=3):
+			self.edges[i][j] = min(
+				self.get_edge_weight(i, j),
+				self.get_edge_weight(i, k) + self.get_edge_weight(k, j)
 			)
-		else:
-			max_pressure = max(max_pressure, current_pressure + pressure_production * time)
-		for adjacent in graph[current_vertex].keys():
-			if (
-				not visited[adjacent]
-				and time > graph[current_vertex][adjacent]
-				and (vertex_values[adjacent] >= min_flow_1 or time < min_time_1)
-			):
-				stack.append((
-					adjacent,
-					pressure_production + vertex_values[adjacent],
-					current_pressure + pressure_production * (graph[current_vertex][adjacent] + 1),
-					time - graph[current_vertex][adjacent] - 1,
-					visited.copy()
-				))
-	return max_pressure
+
+	def remove_stuck_valves(self):
+		for vertex, value in self.vertex_values.copy().items():
+			if value != 0:
+				continue
+			for end in self.edges[vertex].copy().keys():
+				del self.edges[end][vertex]
+			if vertex != "AA":
+				del self.edges[vertex]
+				del self.vertex_values[vertex]
+				try:
+					del self.edges["AA"][vertex]
+				except KeyError:
+					continue
+
+	def DFT(
+		self,
+		visited: dict[str, bool],
+		start_vertex: str,
+		start_time: int,
+		explorers: int,
+		min_flow_1: int,
+		min_time_1: int,
+		min_flow_2: int = 0,
+		min_time_2: int = 0
+	) -> int:
+		max_pressure = 0
+		stack = [(start_time, visited, start_vertex, max_pressure)]
+		while stack:
+			time, visited, current_vertex, current_pressure = stack.pop()
+			visited[current_vertex] = True
+			finished = True
+			for adjacent in self.edges[current_vertex]:
+				if (
+					not visited[adjacent]
+					and time > self.edges[current_vertex][adjacent]
+					and (self.vertex_values[adjacent] >= min_flow_1 or time < min_time_1)
+				):
+					new_time = time - self.edges[current_vertex][adjacent] - 1
+					stack.append((
+						new_time,
+						visited.copy(),
+						adjacent,
+						current_pressure + (self.vertex_values[adjacent]) * new_time
+					))
+					finished = False
+			if explorers > 1 and finished:
+				max_pressure = max(max_pressure, current_pressure + self.DFT(
+						visited,
+						start_vertex,
+						start_time,
+						explorers - 1,
+						min_flow_2,
+						min_time_2
+					)
+				)
+			else:
+				max_pressure = max(max_pressure, current_pressure)
+		return max_pressure
 
 _input = "./2022/Day16/input.txt"
 
