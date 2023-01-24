@@ -29,6 +29,9 @@ def char2pow2(_in: str) -> int:
 
 def BSF64(x: int) -> int:
 	"""Get the index of the rightmost 1 using bit hacks"""
+	if x == 0:
+		return -1
+	x = x & -x
 	count = 0
 	if (x & 18446744069414584320) != 0: count += 32 # 0xffffffff00000000
 	if (x & 18446462603027742720) != 0: count += 16 # 0xffff0000ffff0000
