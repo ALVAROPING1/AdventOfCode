@@ -19,8 +19,8 @@ def part2(_input: str) -> int:
 				reduce(
 					bitwiseAND,
 					(reduce(bitwiseOR, map(char2pow2, backpack)) for backpack in group[0][:-1].split("\n"))
-				)
-				, 2
+				),
+				2
 			) + 1 for group in finditer(r"(\w+\n){3}", file.read())
 		))
 

@@ -1,10 +1,16 @@
 def part1(_input: str) -> int:
 	with open(_input, "r", encoding="UTF-8") as file:
-		return sum(rangeIsSubset(*map(int, line.replace(",", "-").split("-"))) for line in file.readlines())
+		return sum(
+			rangeIsSubset(*map(int, line.replace(",", "-").split("-")))
+			for line in file.readlines()
+		)
 
 def part2(_input: str) -> int:
 	with open(_input, "r", encoding="UTF-8") as file:
-		return sum(rangeOverlap(*map(int, line.replace(",", "-").split("-"))) for line in file.readlines())
+		return sum(
+			rangeOverlap(*map(int, line.replace(",", "-").split("-")))
+			for line in file.readlines()
+		)
 
 def rangeIsSubset(start1: int, end1: int, start2: int, end2: int) -> bool:
 	return 1 > ((start1 - start2) * (end1 - end2))
