@@ -1,6 +1,5 @@
 #include <stdio.h>
-
-#define bool char
+#include <stdbool.h>
 
 bool rangeIsSubset(int min1, int max1, int min2, int max2) {
 	return 1 > ((min1 - min2) * (max1 - max2));
