@@ -25,7 +25,7 @@ int part2() {
 	while (scanf("%d-%d,%d-%d\n", &min1, &max1, &min2, &max2) != EOF) {
 		total += rangeOverlap(min1, max1, min2, max2);
 	}
-	printf("Part 1: %d\n", total);
+	printf("Part 2: %d\n", total);
 	return 0;
 }
 
