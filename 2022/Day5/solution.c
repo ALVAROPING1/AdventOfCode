@@ -44,9 +44,6 @@ int parseCrates(
 	const int input_columns = (buffer_length + 1) >> 2;
 	columns = input_columns < columns? input_columns : columns;
 
-	// Initialize amount of items in each column to 0
-	for (i = 0; i < columns; i++) {items[i] = 0;}
-
 	// Parse input
 	char current_item;
 	do {
@@ -137,7 +134,7 @@ void printTopCrate(
 
 int part1() {
 	char crates[COLUMNS][ROWS];
-	int items[COLUMNS];
+	int items[COLUMNS] = {0};
 	const int columns = parseCrates(COLUMNS, ROWS, crates, items);
 	moveCrates(columns, ROWS, crates, items, true);
 	printTopCrate(columns, ROWS, crates, items, 1);
@@ -146,7 +143,7 @@ int part1() {
 
 int part2() {
 	char crates[COLUMNS][ROWS];
-	int items[COLUMNS];
+	int items[COLUMNS] = {0};
 	const int columns = parseCrates(COLUMNS, ROWS, crates, items);
 	moveCrates(columns, ROWS, crates, items, false);
 	printTopCrate(columns, ROWS, crates, items, 2);
