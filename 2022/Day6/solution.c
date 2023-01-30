@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 
 int solve(const int max_size) {
 	int i = 1;
