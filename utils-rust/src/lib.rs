@@ -27,7 +27,7 @@ macro_rules! days {
                 let path = concat!("./inputs/", stringify!($current), ".txt");
                 let input = std::fs::read_to_string(path)?;
 
-                Ok(super::day01::run(&input).map_err(|_| concat!("Error running day ", stringify!($current)))?)
+                Ok(super::$current::run(&input).map_err(|_| concat!("Error running day ", stringify!($current)))?)
             }
         }
     }
