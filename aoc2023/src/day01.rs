@@ -1,59 +1,51 @@
 use std::error::Error;
 
 use crate::prelude::*;
-use utils_rust::parse;
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
     Ok(Solution::default().part1(part1(input)).part2(part2(input)))
 }
 
-fn part1(input: &str) -> u32 {
-    process_input(input, |line| {
-        find_ascii_digit(line.bytes()) * 10 + find_ascii_digit(line.bytes().rev())
-    })
+#[must_use]
+pub fn part1(input: &str) -> u32 {
+    process_lines(input, str::bytes, |c| (c as char).to_digit(10))
 }
 
-fn part2(input: &str) -> u32 {
-    process_input(input, |line| {
-        find_digit(line, 0..line.len()) * 10 + find_digit(line, (0..line.len()).rev())
-    })
-}
+#[must_use]
+pub fn part2(input: &str) -> u32 {
+    #[allow(clippy::cast_possible_truncation)]
+    fn check_digit(input: &str) -> Option<u32> {
+        static NUMBERS: [&str; 9] = [
+            "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+        ];
+        for (n, num) in NUMBERS.iter().enumerate() {
+            if input.starts_with(num) {
+                return Some(1 + n as u32);
+            }
+        }
+        (input.as_bytes()[0] as char).to_digit(10)
+    }
 
-fn process_input(input: &str, fun: impl Fn(&str) -> u32) -> u32 {
-    input.lines().map(fun).sum()
-}
-
-fn find_ascii_digit(mut input: impl Iterator<Item = u8>) -> u32 {
-    parse::from_ascii_digit(
-        input
-            .find(u8::is_ascii_digit)
-            .expect("There should be at least 1 digit"),
+    process_lines(
+        input,
+        |line| (0..line.len()).map(|i| &line[i..]),
+        check_digit,
     )
 }
 
-const NUMBERS: [&[u8]; 9] = [
-    b"one", b"two", b"three", b"four", b"five", b"six", b"seven", b"eight", b"nine",
-];
-
-fn check_digit(input: &[u8]) -> Option<u32> {
-    let mut n = 1;
-    for num in NUMBERS {
-        if input.starts_with(num) {
-            return Some(n);
-        }
-        n += 1;
-    }
-    if input[0].is_ascii_digit() {
-        return Some(parse::from_ascii_digit(input[0]));
-    }
-    None
-}
-
-fn find_digit(input: &str, range: impl Iterator<Item = usize>) -> u32 {
-    for i in range {
-        if let Some(n) = check_digit(&input.as_bytes()[i..]) {
-            return n;
-        }
-    }
-    panic!("There should be a value")
+fn process_lines<'a, M, I, F, T>(input: &'a str, make_iter: M, find_map: F) -> u32
+where
+    M: Fn(&'a str) -> I,
+    I: DoubleEndedIterator<Item = T>,
+    F: Copy + Fn(T) -> Option<u32>,
+{
+    input
+        .lines()
+        .map(make_iter)
+        .filter_map(|mut iter| {
+            let first = iter.find_map(find_map)?;
+            let last = iter.rev().find_map(find_map).unwrap_or(first);
+            Some(first * 10 + last)
+        })
+        .sum()
 }
