@@ -20,11 +20,7 @@ fn part2(input: &str) -> u32 {
 }
 
 fn process_input(input: &str, fun: impl Fn(&str) -> u32) -> u32 {
-    input
-        .lines()
-        .map(fun)
-        .reduce(|acc, x| acc + x)
-        .expect("There should be a result")
+    input.lines().map(fun).sum()
 }
 
 fn find_ascii_digit(mut input: impl Iterator<Item = u8>) -> u32 {

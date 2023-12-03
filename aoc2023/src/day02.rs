@@ -15,11 +15,7 @@ fn part2(input: &str) -> u32 {
 }
 
 fn process_lines(input: &str, fun: impl Fn(&str) -> Option<u32>) -> u32 {
-    input
-        .lines()
-        .filter_map(fun)
-        .reduce(|acc, x| acc + x)
-        .expect("There should be a result")
+    input.lines().filter_map(fun).sum()
 }
 
 fn parse_line(input: &str) -> (&str, impl Iterator<Item = &str>) {
