@@ -2,5 +2,6 @@
 
 utils_rust::days! {
     day01,
-    > day02,
+    day02,
+    > day03,
 }
