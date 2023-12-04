@@ -35,8 +35,11 @@ fn parse_numbers(nums: &str) -> impl Iterator<Item = u8> + '_ {
         .map(|x| x.parse().expect("Should only try to parse numbers"))
 }
 
-fn parse_line(input: &str) -> (Vec<u8>, impl Iterator<Item = u8> + '_) {
-    let winning = parse_numbers(&input[10..40]).collect();
+fn parse_line(input: &str) -> ([u8; 10], impl Iterator<Item = u8> + '_) {
+    let mut winning = [0; 10];
+    for (i, n) in parse_numbers(&input[10..40]).enumerate() {
+        winning[i] = n;
+    }
     let have = parse_numbers(&input[42..]);
     (winning, have)
 }
