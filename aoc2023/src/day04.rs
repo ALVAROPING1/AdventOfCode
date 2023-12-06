@@ -36,10 +36,7 @@ fn parse_numbers(nums: &str) -> impl Iterator<Item = u8> + '_ {
 }
 
 fn parse_line(input: &str) -> ([u8; 10], impl Iterator<Item = u8> + '_) {
-    let mut winning = [0; 10];
-    for (i, n) in parse_numbers(&input[10..40]).enumerate() {
-        winning[i] = n;
-    }
+    let winning = utils_rust::collect_array(parse_numbers(&input[10..40]));
     let have = parse_numbers(&input[42..]);
     (winning, have)
 }

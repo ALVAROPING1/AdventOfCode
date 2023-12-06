@@ -97,7 +97,7 @@ fn parse_map(map: &str) -> Vec<[u64; 3]> {
         .lines()
         .skip(1)
         .map(|line| {
-            collect_array(
+            utils_rust::collect_array(
                 line.split_whitespace()
                     .map(|x| x.parse().expect("Should only try to parse numbers")),
             )
@@ -105,12 +105,4 @@ fn parse_map(map: &str) -> Vec<[u64; 3]> {
         .collect();
     res.sort_unstable_by_key(|x| x[1]);
     res
-}
-
-fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item = T>) -> [T; N] {
-    let mut out = [T::default(); N];
-    for (i, val) in iter.take(N).enumerate() {
-        out[i] = val;
-    }
-    out
 }

@@ -3,6 +3,14 @@ pub use solution::Solution;
 
 pub mod parse;
 
+pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item = T>) -> [T; N] {
+    let mut out = [T::default(); N];
+    for (i, val) in iter.take(N).enumerate() {
+        out[i] = val;
+    }
+    out
+}
+
 // Adapted from <https://github.com/MaxOhn/AdventOfCode/blob/main/2022/src/lib.rs>
 
 #[macro_export]
