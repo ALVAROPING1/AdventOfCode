@@ -30,13 +30,8 @@ fn calculate_winned(input: &str) -> impl Iterator<Item = usize> + '_ {
     })
 }
 
-fn parse_numbers(nums: &str) -> impl Iterator<Item = u8> + '_ {
-    nums.split_whitespace()
-        .map(|x| x.parse().expect("Should only try to parse numbers"))
-}
-
 fn parse_line(input: &str) -> ([u8; 10], impl Iterator<Item = u8> + '_) {
-    let winning = utils_rust::collect_array(parse_numbers(&input[10..40]));
-    let have = parse_numbers(&input[42..]);
+    let winning = utils_rust::collect_array(utils_rust::parse::value_list(&input[10..40]));
+    let have = utils_rust::parse::value_list(&input[42..]);
     (winning, have)
 }
