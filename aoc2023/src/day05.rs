@@ -7,35 +7,26 @@ pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
     Ok(Solution::default().part1(part1(input)).part2(part2(input)))
 }
 
+// The closure is not redundant because the method call isn't general enough
+#[allow(clippy::redundant_closure_for_method_calls)]
 fn part1(input: &str) -> u64 {
     process_input(
         input,
-        |input| {
-            input
-                .split_whitespace()
-                .map(|x| x.parse().expect("Should only try to parse numbers"))
-                .collect()
-        },
+        |input| input.collect(),
         |map, &val| {
             vec![map
                 .iter()
                 .find(|&&entry| val >= entry[1] && val < entry[1] + entry[2])
                 .map_or(val, |&entry| entry[0] + val - entry[1])]
         },
-        |vals| *vals.iter().min().expect("There should be at least 1 value"),
+        |val| val,
     )
 }
 
 fn part2(input: &str) -> u64 {
     process_input(
         input,
-        |input| -> Vec<(u64, u64)> {
-            input
-                .split_whitespace()
-                .map(|x| x.parse().expect("Should only try to parse numbers"))
-                .tuples()
-                .collect()
-        },
+        |input| input.tuples::<(u64, u64)>().collect(),
         |map, &val| {
             let mut min = val.0;
             let max = val.0 + val.1;
@@ -62,24 +53,23 @@ fn part2(input: &str) -> u64 {
             }
             res
         },
-        |vals| {
-            vals.iter()
-                .map(|val| val.0)
-                .min()
-                .expect("There should be at least 1 value")
-        },
+        |val| val.0,
     )
 }
 
 fn process_input<T, S, F, M>(input: &str, get_seeds: S, map_val: F, min_val: M) -> u64
 where
     T: Debug,
-    S: Fn(&str) -> Vec<T>,
+    S: Fn(&mut dyn Iterator<Item = u64>) -> Vec<T>,
     F: Fn(&[[u64; 3]], &T) -> Vec<T>,
-    M: Fn(&[T]) -> u64,
+    M: Fn(T) -> u64,
 {
     let mut iter = input.split("\n\n");
-    let mut values = get_seeds(&iter.next().expect("There should be a list of seeds")[7..]);
+    let mut values = get_seeds(
+        &mut iter.next().expect("There should be a list of seeds")[7..]
+            .split_whitespace()
+            .map(|x| x.parse().expect("Should only try to parse numbers")),
+    );
     let mut next_values = vec![];
     for map in iter {
         let map = parse_map(map);
@@ -89,7 +79,11 @@ where
         swap(&mut values, &mut next_values);
         next_values.clear();
     }
-    min_val(&values)
+    values
+        .into_iter()
+        .map(min_val)
+        .min()
+        .expect("There should be at least 1 value")
 }
 
 fn parse_map(map: &str) -> Vec<[u64; 3]> {
