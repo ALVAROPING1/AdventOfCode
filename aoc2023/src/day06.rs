@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::error::Error;
 use utils_rust::parse;
 
@@ -34,7 +33,7 @@ where
     let mut iter = input.lines();
     let time = parse_values(&iter.next().expect("There should be a time line")[13..]);
     let distance = parse_values(&iter.next().expect("There should be a distance line")[12..]);
-    time.zip_eq(distance)
+    time.zip(distance)
         .map(|(t, d)| {
             // Solving the equation `x(t) = (T - t)t = A`
             // gives the end points of the range of solutions
