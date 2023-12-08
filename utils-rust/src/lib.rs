@@ -2,6 +2,7 @@ mod solution;
 pub use solution::Solution;
 
 pub mod parse;
+pub mod numbers;
 
 pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item = T>) -> [T; N] {
     let mut out = [T::default(); N];
