@@ -1,8 +1,8 @@
 mod solution;
 pub use solution::Solution;
 
-pub mod parse;
 pub mod numbers;
+pub mod parse;
 
 pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item = T>) -> [T; N] {
     let mut out = [T::default(); N];
@@ -48,7 +48,7 @@ macro_rules! main {
         fn main() {
             let start = std::time::Instant::now();
 
-            match aoc2023::current::run() {
+            match current::run() {
                 Ok(solution) => {
                     let elapsed = start.elapsed();
                     print!("{solution}");
