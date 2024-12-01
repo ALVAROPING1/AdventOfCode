@@ -49,16 +49,11 @@ solution! {
 
 #[derive(Clone, Default)]
 pub struct Solution {
-    pub part1: SolutionType,
-    pub part2: SolutionType,
+    part1: SolutionType,
+    part2: SolutionType,
 }
 
 impl Solution {
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     #[must_use]
     pub fn part1<T>(self, part1: T) -> Self
     where
@@ -66,7 +61,7 @@ impl Solution {
     {
         Self {
             part1: part1.into(),
-            part2: self.part2,
+            ..self
         }
     }
 
@@ -76,8 +71,8 @@ impl Solution {
         SolutionType: From<T>,
     {
         Self {
-            part1: self.part1,
             part2: part2.into(),
+            ..self
         }
     }
 }
