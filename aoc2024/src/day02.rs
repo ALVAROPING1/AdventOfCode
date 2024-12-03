@@ -1,7 +1,5 @@
 use std::{error::Error, iter::Peekable};
 
-use itertools::Itertools;
-
 use crate::prelude::*;
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
@@ -45,8 +43,8 @@ fn check(mut report: Peekable<impl Iterator<Item = u16>>) -> bool {
 fn parse(input: &str) -> Vec<Vec<u16>> {
     input
         .split_terminator('\n')
-        .map(|line| utils_rust::parse::value_list(line).collect_vec())
-        .collect_vec()
+        .map(|line| utils_rust::parse::value_list(line).collect())
+        .collect()
 }
 
 fn solve(input: &[Vec<u16>], check: impl Fn(&[u16]) -> bool) -> u16 {
