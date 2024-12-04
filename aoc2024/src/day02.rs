@@ -52,12 +52,12 @@ fn solve(input: &[Vec<u16>], check: impl Fn(&[u16]) -> bool) -> u16 {
 }
 
 #[must_use]
-pub fn part1(input: &[Vec<u16>]) -> u16 {
+fn part1(input: &[Vec<u16>]) -> u16 {
     solve(input, |report| check(report.iter().copied().peekable()))
 }
 
 #[must_use]
-pub fn part2(input: &[Vec<u16>]) -> u16 {
+fn part2(input: &[Vec<u16>]) -> u16 {
     solve(input, |report| {
         for i in 0..report.len() {
             let res = check(

@@ -84,7 +84,7 @@ impl<'a> Str2D<'a> {
         self.char_idx(self.index(pos))
     }
 
-    pub const fn char_idx(&self, index: usize) -> char {
+    const fn char_idx(&self, index: usize) -> char {
         self.buffer.as_bytes()[index] as char
     }
 

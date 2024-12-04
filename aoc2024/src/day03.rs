@@ -26,12 +26,12 @@ fn solve(input: &str, mul_re: &Regex) -> u32 {
 }
 
 #[must_use]
-pub fn part1(input: &str, mul_re: &Regex) -> u32 {
+fn part1(input: &str, mul_re: &Regex) -> u32 {
     solve(input, mul_re)
 }
 
 #[must_use]
-pub fn part2(input: &str, mul_re: &Regex) -> u32 {
+fn part2(input: &str, mul_re: &Regex) -> u32 {
     let regions = Regex::new(r"(?s:^.*?don't\(\))|do\(\)(?s:.*?)don't|(?s:do\(\).*?$)")
         .expect("The regex should compile");
     regions

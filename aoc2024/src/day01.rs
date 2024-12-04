@@ -21,14 +21,14 @@ fn process_lines(input: &str) -> (Vec<usize>, Vec<usize>) {
 }
 
 #[must_use]
-pub fn part1(left: &mut Vec<usize>, right: &mut Vec<usize>) -> usize {
+fn part1(left: &mut Vec<usize>, right: &mut Vec<usize>) -> usize {
     left.sort_unstable();
     right.sort_unstable();
     zip(left, right).map(|(l, r)| r.abs_diff(*l)).sum()
 }
 
 #[must_use]
-pub fn part2(left: &[usize], right: &[usize]) -> usize {
+fn part2(left: &[usize], right: &[usize]) -> usize {
     let mut counts: [u8; 100_000] = [0; 100_000];
     for x in right {
         counts[*x] += 1;
