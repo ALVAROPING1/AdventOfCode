@@ -17,3 +17,16 @@ where
         ))
     })
 }
+
+pub fn value_list_comma<T: FromStr>(vals: &str) -> impl Iterator<Item = T> + '_
+where
+    <T as FromStr>::Err: Debug,
+{
+    vals.split(',').map(|x| {
+        x.parse().expect(concat!(
+            "Should only try to parse values of type `",
+            stringify!(T),
+            "`"
+        ))
+    })
+}
