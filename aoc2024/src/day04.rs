@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use crate::prelude::*;
+use utils_rust::parse::Str2D;
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
     let input = Str2D::new(input);
@@ -57,41 +58,4 @@ fn part2(input: &Str2D) -> u32 {
         }
     }
     total
-}
-
-struct Str2D<'a> {
-    buffer: &'a str,
-    cols: usize,
-    rows: usize,
-}
-
-impl<'a> Str2D<'a> {
-    pub fn new(input: &'a str) -> Self {
-        let cols = input.find('\n').expect("There should be at least a 1 line") + 1;
-        let rows = input.len() / cols;
-        Self {
-            buffer: input,
-            cols,
-            rows,
-        }
-    }
-
-    pub const fn index(&self, pos: &(usize, usize)) -> usize {
-        pos.0 + self.cols * pos.1
-    }
-
-    pub const fn char(&self, pos: &(usize, usize)) -> char {
-        self.char_idx(self.index(pos))
-    }
-
-    const fn char_idx(&self, index: usize) -> char {
-        self.buffer.as_bytes()[index] as char
-    }
-
-    pub const fn cols(&self) -> usize {
-        self.cols - 1
-    }
-    pub const fn rows(&self) -> usize {
-        self.rows
-    }
 }

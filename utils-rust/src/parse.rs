@@ -30,3 +30,95 @@ where
         ))
     })
 }
+
+macro_rules! impl_str2d {
+    ($($i:ident)?) => {
+        #[must_use]
+        pub const fn pos(&self, index: usize) -> (usize, usize) {
+            let y = index / self.cols;
+            (index - y * self.cols, y)
+        }
+
+        #[must_use]
+        pub const fn index(&self, pos: &(usize, usize)) -> usize {
+            pos.0 + self.cols * pos.1
+        }
+
+        #[must_use]
+        pub $($i)? fn as_str(&self) -> &str {
+            &self.buffer
+        }
+
+        #[must_use]
+        $($i)? fn char_idx(&self, index: usize) -> char {
+            self.buffer.as_bytes()[index] as char
+        }
+
+        #[must_use]
+        pub $($i)? fn char(&self, pos: &(usize, usize)) -> char {
+            self.char_idx(self.index(pos))
+        }
+
+        #[must_use]
+        pub const fn cols(&self) -> usize {
+            self.cols - 1
+        }
+
+        #[must_use]
+        pub const fn rows(&self) -> usize {
+            self.rows
+        }
+    };
+}
+
+pub struct Str2D<'a> {
+    buffer: &'a str,
+    cols: usize,
+    rows: usize,
+}
+
+impl<'a> Str2D<'a> {
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn new(input: &'a str) -> Self {
+        let cols = input.find('\n').expect("There should be at least a 1 line") + 1;
+        let rows = input.len() / cols;
+        Self {
+            buffer: input,
+            cols,
+            rows,
+        }
+    }
+
+    impl_str2d!(const);
+}
+
+pub struct String2D {
+    buffer: String,
+    cols: usize,
+    rows: usize,
+}
+
+impl String2D {
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn new(input: &str) -> Self {
+        let input = input.to_owned();
+        let cols = input.find('\n').expect("There should be at least a 1 line") + 1;
+        let rows = input.len() / cols;
+        Self {
+            buffer: input,
+            cols,
+            rows,
+        }
+    }
+
+    pub fn replace(&mut self, pos: &(usize, usize), c: u8) {
+        let idx = self.index(pos);
+        unsafe {
+            self.buffer.as_bytes_mut()[idx] = c;
+        }
+    }
+
+    impl_str2d!();
+}
