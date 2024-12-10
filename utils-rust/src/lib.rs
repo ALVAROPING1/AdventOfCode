@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 mod solution;
 pub use solution::Solution;
 
@@ -10,6 +12,27 @@ pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item
         out[i] = val;
     }
     out
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Vec2D(pub usize, pub usize);
+
+impl Vec2D {
+    #[must_use]
+    pub const fn as_tuple(&self) -> (usize, usize) {
+        (self.0, self.1)
+    }
+}
+
+impl Add<(isize, isize)> for Vec2D {
+    type Output = Self;
+    fn add(self, rhs: (isize, isize)) -> Self::Output {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+        Self(
+            ((self.0 as isize) + rhs.0) as usize,
+            ((self.1 as isize) + rhs.1) as usize,
+        )
+    }
 }
 
 // Adapted from <https://github.com/MaxOhn/AdventOfCode/blob/main/2022/src/lib.rs>

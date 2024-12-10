@@ -1,7 +1,8 @@
-use std::{error::Error, ops::Add};
+use std::error::Error;
 
 use crate::prelude::*;
 use utils_rust::parse::String2D;
+use utils_rust::Vec2D;
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
     let (mut map, start) = parse_input(input);
@@ -49,26 +50,6 @@ fn part1(map: &String2D, mut pos: Vec2D) -> u16 {
         pos = new_pos;
     }
     total
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Vec2D(usize, usize);
-
-impl Vec2D {
-    pub const fn as_tuple(&self) -> (usize, usize) {
-        (self.0, self.1)
-    }
-}
-
-impl Add<(isize, isize)> for Vec2D {
-    type Output = Self;
-    fn add(self, rhs: (isize, isize)) -> Self::Output {
-        #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
-        Self(
-            ((self.0 as isize) + rhs.0) as usize,
-            ((self.1 as isize) + rhs.1) as usize,
-        )
-    }
 }
 
 fn check_in_loop(map: &String2D, mut pos: Vec2D, mut step: usize, mut visited: Vec<u8>) -> bool {
