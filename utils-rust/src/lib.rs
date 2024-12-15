@@ -59,6 +59,9 @@ macro_rules! days {
     ( $( $pre:ident ,)* ) => {
         compile_error!("One day must be prefixed with `> `")
     };
+    ( $( $pre:ident ,)*  > $current:ident, $( $mid:ident ,)*  > $current2:ident, $( $post:ident ,)* ) => {
+        compile_error!("Multiple days can't be prefixed with `> `")
+    };
     ( $( $pre:ident ,)* > $current:ident, $( $post:ident ,)* ) => {
         mod prelude {
             pub use utils_rust::Solution;
