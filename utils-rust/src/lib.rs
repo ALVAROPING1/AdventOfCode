@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, AddAssign, Sub};
 
 mod solution;
 pub use solution::Solution;
@@ -14,7 +14,7 @@ pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item
     out
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Vec2D(pub usize, pub usize);
 
 impl Vec2D {
@@ -31,6 +31,23 @@ impl Add<(isize, isize)> for Vec2D {
         Self(
             ((self.0 as isize) + rhs.0) as usize,
             ((self.1 as isize) + rhs.1) as usize,
+        )
+    }
+}
+
+impl AddAssign<(isize, isize)> for Vec2D {
+    fn add_assign(&mut self, rhs: (isize, isize)) {
+        *self = *self + rhs;
+    }
+}
+
+impl Sub<(isize, isize)> for Vec2D {
+    type Output = Self;
+    fn sub(self, rhs: (isize, isize)) -> Self::Output {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+        Self(
+            ((self.0 as isize) - rhs.0) as usize,
+            ((self.1 as isize) - rhs.1) as usize,
         )
     }
 }

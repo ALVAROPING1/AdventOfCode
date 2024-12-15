@@ -68,6 +68,15 @@ macro_rules! impl_str2d {
         pub const fn rows(&self) -> usize {
             self.rows
         }
+
+        #[must_use]
+        pub fn find(&self, c: char) -> Option<(usize, usize)> {
+            self.buffer.find(c).map(|idx| self.pos(idx))
+        }
+
+        pub fn print(&self) {
+            println!("{}", self.buffer)
+        }
     };
 }
 
@@ -104,6 +113,12 @@ impl String2D {
     #[allow(clippy::missing_panics_doc)]
     pub fn new(input: &str) -> Self {
         let input = input.to_owned();
+        Self::from_string(input)
+    }
+
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn from_string(input: String) -> Self {
         let cols = input.find('\n').expect("There should be at least a 1 line") + 1;
         let rows = input.len() / cols;
         Self {
