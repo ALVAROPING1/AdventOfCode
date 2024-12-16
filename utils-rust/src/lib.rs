@@ -14,7 +14,7 @@ pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item
     out
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Vec2D(pub usize, pub usize);
 
 impl Vec2D {
