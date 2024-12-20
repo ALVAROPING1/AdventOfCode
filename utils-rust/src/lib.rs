@@ -22,6 +22,11 @@ impl Vec2D {
     pub const fn as_tuple(&self) -> (usize, usize) {
         (self.0, self.1)
     }
+
+    #[must_use]
+    pub const fn idx(&self, cols: usize) -> usize {
+        self.1 * cols + self.0
+    }
 }
 
 impl Add<(isize, isize)> for Vec2D {
@@ -49,6 +54,29 @@ impl Sub<(isize, isize)> for Vec2D {
             ((self.0 as isize) - rhs.0) as usize,
             ((self.1 as isize) - rhs.1) as usize,
         )
+    }
+}
+
+impl Sub<Self> for Vec2D {
+    type Output = (isize, isize);
+    fn sub(self, rhs: Self) -> Self::Output {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+        (
+            (self.0 as isize) - (rhs.0 as isize),
+            (self.1 as isize) - (rhs.1 as isize),
+        )
+    }
+}
+
+impl From<(usize, usize)> for Vec2D {
+    fn from(value: (usize, usize)) -> Self {
+        Self(value.0, value.1)
+    }
+}
+
+impl std::fmt::Display for Vec2D {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.0, self.1)
     }
 }
 
