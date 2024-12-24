@@ -1,0 +1,32 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style type="text/css">
+      #mySvgId {{
+        height: 100%;
+        width: 100%;
+      }}
+    </style>
+  </head>
+  <body>
+    <div id="graphDiv"></div>
+    <script src="https://bumbu.me/svg-pan-zoom/dist/svg-pan-zoom.js"></script>
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({{ startOnLoad: false, maxEdges: 1000, layout: "elk" }});
+      const drawDiagram = async function () {{
+        const element = document.querySelector('#graphDiv');
+        const graphDefinition = `{}`;
+          const {{ svg }} = await mermaid.render('mySvgId', graphDefinition);
+        element.innerHTML = svg.replace(/[ ]*max-width:[ 0-9\.]*px;/i , '');
+        var panZoomTiger = svgPanZoom('#mySvgId', {{
+          zoomEnabled: true,
+          controlIconsEnabled: true,
+          fit: true,
+          center: true
+        }})
+      }};
+      await drawDiagram();
+    </script>
+  </body>
+</html>
