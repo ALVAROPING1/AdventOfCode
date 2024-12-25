@@ -106,7 +106,7 @@ macro_rules! days {
             pub fn run() -> Result<Solution, Box<dyn Error>> {
                 let path = concat!("./inputs/", stringify!($current), ".txt");
                 let input = std::fs::read_to_string(path)?;
-
+                println!(concat!("Running ", stringify!($current)));
                 Ok(super::$current::run(&input).map_err(|_| concat!("Error running day ", stringify!($current)))?)
             }
         }
