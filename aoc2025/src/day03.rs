@@ -33,28 +33,33 @@ fn part1<'a>(banks: impl Iterator<Item = &'a [u8]>) -> usize {
 
 #[must_use]
 fn part2<'a>(banks: impl Iterator<Item = &'a [u8]>) -> usize {
+    const DIGITS: usize = 12;
     let mut total: usize = 0;
+    let mut num = Vec::<u8>::with_capacity(DIGITS);
+    let mut pos = Vec::<usize>::with_capacity(DIGITS);
     for bank in banks {
-        let maxs = std::iter::repeat_n((0, 0), bank.len()).collect::<Vec<_>>();
-        let mut maxs = std::iter::repeat_n(maxs, 13).collect::<Vec<_>>();
-        for digits in 1..=13 {
-            let max_pos = bank.len() - digits;
-            maxs[digits - 1][max_pos] = ((bank[max_pos] - b'0') as usize, max_pos);
-            for (i, val) in bank.iter().enumerate().rev().skip(digits) {
-                let val = (*val - b'0') as usize;
-                maxs[digits - 1][i] = if val >= maxs[digits - 1][i + 1].0 {
-                    (val, i)
-                } else {
-                    maxs[digits - 1][i + 1]
-                };
+        num.clear();
+        pos.clear();
+        num.extend(bank[..DIGITS].iter());
+        pos.extend(0..DIGITS);
+        for (i, new) in bank.iter().enumerate().skip(1) {
+            let right = DIGITS.min(i + 1);
+            let left = DIGITS.saturating_sub(bank.len() - i);
+            for j in left..right {
+                let curr = num[j];
+                let curr_pos = pos[j];
+                if curr_pos >= i {
+                    break;
+                } else if *new > curr {
+                    let new_digits = i..i + DIGITS - j;
+                    num[j..].copy_from_slice(&bank[new_digits.clone()]);
+                    pos.truncate(j);
+                    pos.extend(new_digits);
+                    break;
+                }
             }
         }
-        let mut max = 0;
-        let mut left = 0;
-        for digit in (0..12).rev() {
-            max = max * 10 + maxs[digit][left].0;
-            left = maxs[digit][left].1 + 1;
-        }
+        let max = num.iter().fold(0, |acc, x| acc * 10 + (*x - b'0') as usize);
         total += max;
     }
     total
