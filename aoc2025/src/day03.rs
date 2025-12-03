@@ -14,31 +14,22 @@ fn process_input(input: &str) -> Vec<&[u8]> {
 }
 
 #[must_use]
-fn solve(banks: &[&[u8]], digits: usize) -> usize {
+fn solve(banks: &[&[u8]], digits: u32) -> usize {
     let mut total: usize = 0;
-    let mut num: Vec<u8> = std::iter::repeat_n(0, digits).collect();
-    let mut pos = Vec::<usize>::with_capacity(digits);
     for bank in banks {
-        pos.clear();
-        num.copy_from_slice(&bank[..digits]);
-        pos.extend(0..digits);
-        for (i, new) in bank.iter().enumerate().skip(1) {
-            let right = digits.min(i + 1);
-            let left = digits.saturating_sub(bank.len() - i);
-            for j in left..right {
-                if pos[j] >= i {
-                    break;
-                } else if *new > num[j] {
-                    let new_digits = i..i + digits - j;
-                    num[j..].copy_from_slice(&bank[new_digits.clone()]);
-                    pos.truncate(j);
-                    pos.extend(new_digits);
-                    break;
-                }
-            }
+        let mut pos = 0;
+        let mut result = 0;
+        for digit in 0..digits {
+            let (i, max) = bank[pos..=bank.len() - (digits - digit) as usize]
+                .iter()
+                .enumerate()
+                .rev()
+                .max_by_key(|(_, x)| **x)
+                .expect("The subrange shouldn't be empty");
+            result += (max - b'0') as usize * 10usize.pow(digits - digit - 1);
+            pos += i + 1;
         }
-        let max = num.iter().fold(0, |acc, x| acc * 10 + (*x - b'0') as usize);
-        total += max;
+        total += result;
     }
     total
 }
