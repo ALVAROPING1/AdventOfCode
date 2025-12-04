@@ -16,6 +16,19 @@ pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Vec2D(pub usize, pub usize);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct OffsetVec(pub i8, pub i8);
+
+pub const DIR8: [OffsetVec; 8] = [
+    OffsetVec(-1, -1),
+    OffsetVec(0, -1),
+    OffsetVec(1, -1),
+    OffsetVec(-1, 0),
+    OffsetVec(1, 0),
+    OffsetVec(-1, 1),
+    OffsetVec(0, 1),
+    OffsetVec(1, 1),
+];
 
 impl Vec2D {
     #[must_use]

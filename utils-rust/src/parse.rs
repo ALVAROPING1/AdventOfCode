@@ -90,7 +90,7 @@ impl<'a> Str2D<'a> {
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
     pub fn new(input: &'a str) -> Self {
-        let cols = input.find('\n').expect("There should be at least a 1 line") + 1;
+        let cols = input.find('\n').expect("There should be at least 1 line") + 1;
         let rows = input.len() / cols;
         Self {
             buffer: input,
