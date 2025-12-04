@@ -11,39 +11,37 @@ pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
 }
 
 #[must_use]
-fn solve<const REMOVE: bool>(mut map: &mut String2D) -> usize {
-    let add = |a: usize, b, c| {
+fn solve<const REMOVE: bool>(map: &mut String2D) -> usize {
+    let add_offset = |a: usize, b, c| {
         a.checked_add_signed(b as isize)
             .and_then(|x| (x < c).then_some(x))
     };
     let mut total = 0;
-    for round in 0.. {
-        let mut round_total = 0;
-        for y in 0..map.rows() {
-            for x in 0..map.cols() {
+    let rows = map.rows();
+    let cols = map.cols();
+
+    let mut queue = Vec::new();
+    for y in 0..rows {
+        for x in 0..cols {
+            queue.push((x, y));
+            while let Some((x, y)) = queue.pop() {
                 if map.char(&(x, y)) != '@' {
                     continue;
                 }
-                let count = utils_rust::DIR8
-                    .iter()
-                    .filter_map(|offset| {
-                        let i = add(y, offset.1, map.rows());
-                        let j = add(x, offset.0, map.cols());
-                        j.zip(i)
-                    })
-                    .filter(|pos| map.char(pos) == '@')
-                    .count();
+                let adj = utils_rust::DIR8.iter().filter_map(|offset| {
+                    add_offset(x, offset.0, cols).zip(add_offset(y, offset.1, rows))
+                });
+                let adj = adj.filter(|pos| map.char(pos) == '@');
+                let count = adj.clone().count();
+
                 if count < 4 {
-                    round_total += 1;
+                    total += 1;
                     if REMOVE {
+                        queue.extend(adj);
                         map.replace(&(x, y), b'.');
                     }
                 }
             }
-        }
-        total += round_total;
-        if round_total == 0 || !REMOVE {
-            break;
         }
     }
     total
