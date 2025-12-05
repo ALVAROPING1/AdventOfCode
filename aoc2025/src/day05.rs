@@ -4,10 +4,10 @@ use std::ops::RangeInclusive;
 use crate::prelude::*;
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
-    let (mut ranges, food) = process_input(input);
+    let (ranges, food) = process_input(input);
     Ok(Solution::default()
         .part1(part1(&ranges, food))
-        .part2(part2(&mut ranges)))
+        .part2(part2(&ranges)))
 }
 
 fn process_input(input: &str) -> (Vec<RangeInclusive<usize>>, impl Iterator<Item = usize> + '_) {
@@ -19,21 +19,26 @@ fn process_input(input: &str) -> (Vec<RangeInclusive<usize>>, impl Iterator<Item
     let (ranges, food) = input
         .split_once("\n\n")
         .expect("There should be a single empty line");
-    (
-        ranges.split_terminator('\n').map(parse_range).collect(),
-        food.split_terminator('\n').map(parse),
-    )
+    let mut ranges: Vec<_> = ranges.split_terminator('\n').map(parse_range).collect();
+    let food = food.split_terminator('\n').map(parse);
+    ranges.sort_unstable_by_key(|range| *range.start());
+    (ranges, food)
 }
 
 #[must_use]
 fn part1(ranges: &[RangeInclusive<usize>], food: impl Iterator<Item = usize>) -> usize {
-    food.filter(|x| ranges.iter().any(|r| r.contains(x)))
-        .count()
+    food.filter(|x| {
+        ranges
+            .iter()
+            .skip_while(|r| *r.end() < *x)
+            .take_while(|r| *r.start() <= *x)
+            .any(|r| r.contains(x))
+    })
+    .count()
 }
 
 #[must_use]
-fn part2(ranges: &mut [RangeInclusive<usize>]) -> usize {
-    ranges.sort_unstable_by_key(|range| *range.start());
+fn part2(ranges: &[RangeInclusive<usize>]) -> usize {
     ranges
         .iter()
         .scan(0, |max, range| {
