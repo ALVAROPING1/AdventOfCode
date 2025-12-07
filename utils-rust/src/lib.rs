@@ -1,3 +1,5 @@
+#![allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
+
 use std::ops::{Add, AddAssign, Sub};
 
 mod solution;
@@ -93,6 +95,10 @@ impl std::fmt::Display for Vec2D {
     }
 }
 
+pub fn input(path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    Ok(std::fs::read_to_string(path)?)
+}
+
 // Adapted from <https://github.com/MaxOhn/AdventOfCode/blob/main/2022/src/lib.rs>
 
 #[macro_export]
@@ -117,13 +123,19 @@ macro_rules! days {
             use super::prelude::*;
 
             pub fn run() -> Result<Solution, Box<dyn Error>> {
-                let path = concat!("./inputs/", stringify!($current), ".txt");
-                let input = std::fs::read_to_string(path)?;
+                let input = $crate::input($crate::input_path!($current))?;
                 println!(concat!("Running ", stringify!($current)));
                 Ok(super::$current::run(&input).map_err(|_| concat!("Error running day ", stringify!($current)))?)
             }
         }
     }
+}
+
+#[macro_export]
+macro_rules! input_path {
+    ($day:ident) => {
+        concat!("./inputs/", stringify!($day), ".txt")
+    };
 }
 
 #[macro_export]
@@ -142,4 +154,42 @@ macro_rules! main {
             }
         }
     };
+}
+
+#[macro_export]
+macro_rules! bench {
+    ( ($lib:ident) $( $pre:ident ,)* ) => {
+        $crate::bench!();
+
+        pub fn benchmark_crate(c: &mut Criterion) {
+            $( $crate::bench!($lib, $pre, c); )*
+        }
+    };
+    ( ($lib:ident) $( $pre:ident ,)*  > $current:ident, $( $mid:ident ,)*  > $current2:ident, $( $post:ident ,)* ) => {
+        compile_error!("Multiple days can't be prefixed with `> `")
+    };
+    ( ($lib:ident) $( $pre:ident ,)* > $current:ident, $( $post:ident ,)* ) => {
+        $crate::bench!();
+
+        $( pub use $lib::$pre; )*
+        $( pub use $lib::$post; )*
+
+        pub fn benchmark_crate(c: &mut Criterion) {
+            $crate::bench!($lib, $current, c);
+        }
+    };
+    ($lib:ident, $day:ident, $c:ident) => {
+        let input = $crate::input($crate::input_path!($day)).unwrap();
+        $c.bench_function(stringify!($day), |b| b.iter(|| $lib::$day::run(&input)));
+    };
+    () => {
+        use criterion::{criterion_group, criterion_main, Criterion};
+
+        criterion_group! {
+            name = benches;
+            config = Criterion::default().measurement_time(std::time::Duration::from_secs(10));
+            targets = benchmark_crate
+        }
+        criterion_main!(benches);
+    }
 }
