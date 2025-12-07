@@ -1,16 +1,17 @@
+use itertools::Itertools;
 use std::error::Error;
-use std::ops::RangeInclusive;
 
 use crate::prelude::*;
 
+type Range = std::ops::RangeInclusive<usize>;
+
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
-    let (ranges, food) = process_input(input);
-    Ok(Solution::default()
-        .part1(part1(&ranges, food))
-        .part2(part2(&ranges)))
+    let (mut ranges, food) = process_input(input);
+    let (fresh, total) = solve(&mut ranges, food);
+    Ok(Solution::default().part1(fresh).part2(total))
 }
 
-fn process_input(input: &str) -> (Vec<RangeInclusive<usize>>, impl Iterator<Item = usize> + '_) {
+fn process_input(input: &str) -> (impl Iterator<Item = Range>, impl Iterator<Item = usize>) {
     let parse = |x: &str| -> usize { x.parse().expect("All values should be integers") };
     let parse_range = |line: &str| {
         let (s, e) = line.split_once('-').expect("There should be single `-`");
@@ -19,36 +20,35 @@ fn process_input(input: &str) -> (Vec<RangeInclusive<usize>>, impl Iterator<Item
     let (ranges, food) = input
         .split_once("\n\n")
         .expect("There should be a single empty line");
-    let mut ranges: Vec<_> = ranges.split_terminator('\n').map(parse_range).collect();
-    let food = food.split_terminator('\n').map(parse);
-    ranges.sort_unstable_by_key(|range| *range.start());
+    let ranges = ranges
+        .split_terminator('\n')
+        .map(parse_range)
+        .sorted_unstable_by_key(|range| *range.start())
+        .coalesce(|acc, x| {
+            if x.start() > acc.end() {
+                return Err((acc, x));
+            }
+            Ok(*acc.start()..=std::cmp::max(*acc.end(), *x.end()))
+        });
+    let food = food.split_terminator('\n').map(parse).sorted_unstable();
     (ranges, food)
 }
 
-#[must_use]
-fn part1(ranges: &[RangeInclusive<usize>], food: impl Iterator<Item = usize>) -> usize {
-    food.filter(|x| {
-        ranges
-            .iter()
-            .skip_while(|r| *r.end() < *x)
-            .take_while(|r| *r.start() <= *x)
-            .any(|r| r.contains(x))
-    })
-    .count()
-}
-
-#[must_use]
-fn part2(ranges: &[RangeInclusive<usize>]) -> usize {
-    ranges
-        .iter()
-        .scan(0, |max, range| {
-            Some(if *max < *range.end() + 1 {
-                let min = (*max).max(*range.start());
-                *max = *range.end() + 1;
-                *max - min
-            } else {
-                0
-            })
-        })
-        .sum()
+fn solve(ranges: impl Iterator<Item = Range>, food: impl Iterator<Item = usize>) -> (usize, usize) {
+    let (mut ranges, mut food) = (ranges.peekable(), food.peekable());
+    let (mut total, mut fresh) = (0, 0);
+    while let Some((range, x)) = ranges.peek().zip(food.peek()) {
+        if range.contains(x) {
+            fresh += 1;
+            food.next();
+        } else if x < range.start() {
+            food.next();
+        } else {
+            // if x > range.end()
+            total += range.end() - range.start() + 1;
+            ranges.next();
+        }
+    }
+    total += ranges.map(|r| r.end() - r.start() + 1).sum::<usize>();
+    (fresh, total)
 }
