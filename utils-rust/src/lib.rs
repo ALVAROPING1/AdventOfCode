@@ -7,6 +7,8 @@ pub use solution::Solution;
 
 pub mod numbers;
 pub mod parse;
+pub mod union_find;
+pub use union_find::UnionFind;
 
 pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item = T>) -> [T; N] {
     let mut out = [T::default(); N];
