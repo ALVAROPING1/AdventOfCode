@@ -15,21 +15,20 @@ fn solve(map: &str) -> (usize, usize) {
     let start = first
         .find('S')
         .expect("There should be a starting position");
-    let mut curr: Vec<usize> = std::iter::repeat_n(0, first.len() + 2).collect();
-    curr[start + 1] = 1;
-    let mut next = curr.clone();
+    let mut curr: Vec<usize> = std::iter::repeat_n(0, first.len()).collect();
+    curr[start] = 1;
     let mut splitters = 0;
-    for row in rows.split_terminator('\n') {
-        for (i, c) in row.chars().enumerate() {
-            let i = i + 1;
-            if c == '^' && curr[i] > 0 {
+    let mut range = (start, start);
+    for row in rows.split_terminator('\n').skip(1).step_by(2) {
+        for i in (range.0..=range.1).step_by(2) {
+            if row.as_bytes()[i] == b'^' && curr[i] > 0 {
                 splitters += 1;
-                next[i - 1] += curr[i];
-                next[i + 1] += curr[i];
-                next[i] = 0;
+                curr[i - 1] += curr[i];
+                curr[i + 1] += curr[i];
+                curr[i] = 0;
             }
         }
-        curr.copy_from_slice(&next);
+        range = (range.0 - 1, range.1 + 1);
     }
     (splitters, curr.iter().sum())
 }
