@@ -8,5 +8,6 @@ utils_rust::days! {
     day05,
     day06,
     day07,
-    > day08,
+    day08,
+    > day09,
 }
