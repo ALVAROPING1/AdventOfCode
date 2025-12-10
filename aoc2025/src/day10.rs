@@ -7,8 +7,9 @@ use utils_rust::NKBits;
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
     let problems = parse_input(input);
-    Ok(Solution::default().part1(part1(&problems)))
-    // .part2(part2(&points)))
+    Ok(Solution::default()
+        .part1(part1(&problems))
+        .part2(part2(&problems)))
 }
 
 #[derive(Debug)]
@@ -83,21 +84,65 @@ fn bit_hack_combinations(
     })
 }
 
-fn solve(p: &Problem) -> usize {
-    for size in 1..p.buttons.len() {
-        for combination in bit_hack_combinations(&p.buttons, size) {
-            let state = combination
-                .reduce(|acc, x| acc ^ x)
-                .expect("There should be at least 1 element");
-            if state == p.goal {
-                return size;
+#[must_use]
+fn part1(problems: &[Problem]) -> usize {
+    fn solve(p: &Problem) -> usize {
+        for size in 1..p.buttons.len() {
+            for combination in bit_hack_combinations(&p.buttons, size) {
+                let state = combination
+                    .reduce(|acc, x| acc ^ x)
+                    .expect("There should be at least 1 element");
+                if state == p.goal {
+                    return size;
+                }
             }
         }
+        unreachable!("There should always be a solution");
     }
-    unreachable!("There should always be a solution");
+
+    problems.iter().map(solve).sum()
 }
 
 #[must_use]
-fn part1(problems: &[Problem]) -> usize {
+fn part2(problems: &[Problem]) -> u64 {
+    fn solve(p: &Problem) -> u64 {
+        use z3::ast::{Bool, Int};
+
+        let presses: Vec<_> = (0..p.buttons.len())
+            .map(|_| Int::fresh_const("press"))
+            .collect();
+        let optimizer = z3::Optimize::new();
+
+        optimizer.assert(&Bool::and(&presses.iter().map(|p| p.ge(0)).collect_vec()));
+        for (i, &energy) in p.energy.iter().enumerate() {
+            optimizer.assert(
+                &Int::add(
+                    &p.buttons
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(j, &b)| (b & (1 << i) != 0).then_some(&presses[j]))
+                        .collect_vec(),
+                )
+                .eq(u32::from(energy)),
+            );
+        }
+        optimizer.minimize(&Int::add(&presses));
+
+        assert_eq!(optimizer.check(&[]), z3::SatResult::Sat);
+        let model = optimizer
+            .get_model()
+            .expect("We already checked that there is a solution");
+        presses
+            .iter()
+            .map(|press| {
+                model
+                    .eval(press, false)
+                    .expect("The variable evaluation shouldn't fail")
+                    .as_u64()
+                    .expect("The result should be positive and fit in a `u64`")
+            })
+            .sum()
+    }
+
     problems.iter().map(solve).sum()
 }

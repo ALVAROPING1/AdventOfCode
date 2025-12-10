@@ -9,6 +9,7 @@ edition = "2021"
 utils-rust = { path = "../utils-rust" }
 itertools = "0.14.0"
 regex = "1.11.1"
+z3 = "0.19.6"
 
 [dev-dependencies]
 criterion = "0.8.1"
