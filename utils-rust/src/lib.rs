@@ -9,6 +9,8 @@ pub mod numbers;
 pub mod parse;
 pub mod union_find;
 pub use union_find::UnionFind;
+pub mod nk_bits;
+pub use nk_bits::NKBits;
 
 pub fn collect_array<T: Default + Copy, const N: usize>(iter: impl Iterator<Item = T>) -> [T; N] {
     let mut out = [T::default(); N];

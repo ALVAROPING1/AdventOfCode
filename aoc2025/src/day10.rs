@@ -1,9 +1,9 @@
-use std::collections::{HashSet, VecDeque};
 use std::error::Error;
 
 use itertools::Itertools;
 
 use crate::prelude::*;
+use utils_rust::NKBits;
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
     let problems = parse_input(input);
@@ -13,17 +13,17 @@ pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
 
 #[derive(Debug)]
 struct Problem {
-    pub goal: usize,
-    pub buttons: Vec<usize>,
-    pub energy: Vec<usize>,
+    pub goal: u16,
+    pub buttons: Vec<u16>,
+    pub energy: Vec<u16>,
 }
 
 #[must_use]
 fn parse_input(input: &str) -> Vec<Problem> {
-    fn parse(x: &str) -> usize {
+    fn parse(x: &str) -> u16 {
         x.parse().expect("All values should be integers")
     }
-    fn num_list(x: &str) -> impl Iterator<Item = usize> + '_ {
+    fn num_list(x: &str) -> impl Iterator<Item = u16> + '_ {
         x[1..x.len() - 1].split(',').map(parse)
     }
     input
@@ -55,20 +55,43 @@ fn parse_input(input: &str) -> Vec<Problem> {
         .collect()
 }
 
+/// Generate all combinations of `size` button presses with standard itertools'
+/// [`Itertools::combinations()`] method
+#[allow(dead_code)]
+fn itertools_combinations(
+    buttons: &[u16],
+    size: usize,
+) -> impl Iterator<Item = impl Iterator<Item = u16> + '_> + '_ {
+    buttons
+        .iter()
+        .copied()
+        .combinations(size)
+        .map(IntoIterator::into_iter)
+}
+
+/// Generate all combinations of `size` button presses with bit hacks, doing no allocations
+fn bit_hack_combinations(
+    buttons: &[u16],
+    size: usize,
+) -> impl Iterator<Item = impl Iterator<Item = u16> + '_> + '_ {
+    NKBits::new(buttons.len(), size).map(|combination| {
+        buttons
+            .iter()
+            .copied()
+            .enumerate()
+            .filter_map(move |(i, x)| (combination & (1 << i) != 0).then_some(x))
+    })
+}
+
 fn solve(p: &Problem) -> usize {
-    let mut queue = VecDeque::new();
-    let mut seen = HashSet::new();
-    queue.push_back((0, 0));
-    while let Some((cost, state)) = queue.pop_front() {
-        if !seen.insert(state) {
-            continue;
-        }
-        for &button in &p.buttons {
-            let next = state ^ button;
-            if next == p.goal {
-                return cost + 1;
+    for size in 1..p.buttons.len() {
+        for combination in bit_hack_combinations(&p.buttons, size) {
+            let state = combination
+                .reduce(|acc, x| acc ^ x)
+                .expect("There should be at least 1 element");
+            if state == p.goal {
+                return size;
             }
-            queue.push_back((cost + 1, next));
         }
     }
     unreachable!("There should always be a solution");
