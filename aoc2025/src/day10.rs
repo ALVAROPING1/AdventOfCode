@@ -75,11 +75,14 @@ fn bit_hack_combinations(
     buttons: &[u16],
     size: usize,
 ) -> impl Iterator<Item = impl Iterator<Item = u16> + '_> + '_ {
+    // Represent each combination with an `N` bit field, where the i-th bit determines if the i-th
+    // button is pressed
     NKBits::new(buttons.len(), size).map(move |mut combination| {
         std::iter::from_fn(move || {
             if combination == 0 {
                 return None;
             }
+            // Get the first pressed button, remove it from the current combination, and yield it
             let i = combination.trailing_zeros();
             combination ^= 1 << i;
             Some(buttons[i as usize])
@@ -90,8 +93,13 @@ fn bit_hack_combinations(
 #[must_use]
 fn part1(problems: &[Problem]) -> usize {
     fn solve(p: &Problem) -> usize {
+        // Iterative depth-first search
+        // For each amount of buttons to press, generate all combinations of that amount of unique
+        // button presses and check if any of them is a solution
         for size in 1..p.buttons.len() {
             for combination in bit_hack_combinations(&p.buttons, size) {
+                // Pressing a button is equivalent to XORing its bit field of connected lights with
+                // the current state (initially 0)
                 let state = combination
                     .reduce(|acc, x| acc ^ x)
                     .expect("There should be at least 1 element");
@@ -110,6 +118,8 @@ fn part1(problems: &[Problem]) -> usize {
 fn part2(problems: &[Problem]) -> u64 {
     fn solve(p: &Problem) -> u64 {
         use z3::ast::{Bool, Int};
+        // This is an Integer Linear Programming problem (ILP), so give the constraints and
+        // optimization goal to an ILP solver
 
         let presses: Vec<_> = (0..p.buttons.len())
             .map(|_| Int::fresh_const("press"))
