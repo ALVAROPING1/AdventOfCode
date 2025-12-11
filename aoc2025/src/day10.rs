@@ -75,12 +75,15 @@ fn bit_hack_combinations(
     buttons: &[u16],
     size: usize,
 ) -> impl Iterator<Item = impl Iterator<Item = u16> + '_> + '_ {
-    NKBits::new(buttons.len(), size).map(|combination| {
-        buttons
-            .iter()
-            .copied()
-            .enumerate()
-            .filter_map(move |(i, x)| (combination & (1 << i) != 0).then_some(x))
+    NKBits::new(buttons.len(), size).map(move |mut combination| {
+        std::iter::from_fn(move || {
+            if combination == 0 {
+                return None;
+            }
+            let i = combination.trailing_zeros();
+            combination ^= 1 << i;
+            Some(buttons[i as usize])
+        })
     })
 }
 
