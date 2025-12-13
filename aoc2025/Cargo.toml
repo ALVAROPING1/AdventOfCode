@@ -5,11 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+
+external-solver = ["z3"]
+
 [dependencies]
 utils-rust = { path = "../utils-rust" }
 itertools = "0.14.0"
 regex = "1.11.1"
-z3 = "0.19.6"
+z3 = { version = "0.19.6", optional = true }
 
 [dev-dependencies]
 criterion = "0.8.1"
