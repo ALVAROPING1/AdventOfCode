@@ -16,9 +16,9 @@ pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
         .tuple_combinations()
         .map(|(a, b)| {
             Reverse((
-                (positions[a].0.abs_diff(positions[b].0).pow(2))
-                    + (positions[a].1.abs_diff(positions[b].1).pow(2))
-                    + (positions[a].2.abs_diff(positions[b].2).pow(2)),
+                std::iter::zip(positions[a], positions[b])
+                    .map(|(a, b)| a.abs_diff(b).pow(2))
+                    .sum(),
                 a,
                 b,
             ))
@@ -30,14 +30,12 @@ pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
 }
 
 #[must_use]
-fn parse_input(input: &str) -> Vec<(usize, usize, usize)> {
-    let parse = |x: &str| -> usize { x.parse().expect("All values should be integers") };
+fn parse_input(input: &str) -> Vec<[usize; 3]> {
     input
         .split_terminator('\n')
         .map(|line| {
-            line.split(',')
-                .map(parse)
-                .collect_tuple()
+            utils_rust::parse::value_list_comma(line)
+                .collect_array()
                 .expect("There should be 3 values per line")
         })
         .collect()
@@ -67,12 +65,8 @@ fn part1(distances: &mut Queue, sets: &mut UnionFind) -> usize {
 }
 
 #[must_use]
-fn part2(
-    positions: &[(usize, usize, usize)],
-    distances: &mut Queue,
-    sets: &mut UnionFind,
-) -> usize {
+fn part2(positions: &[[usize; 3]], distances: &mut Queue, sets: &mut UnionFind) -> usize {
     solve(distances, sets, |sizes, id, a, b| {
-        (sizes[id] == positions.len()).then(|| positions[a].0 * positions[b].0)
+        (sizes[id] == positions.len()).then(|| positions[a][0] * positions[b][0])
     })
 }

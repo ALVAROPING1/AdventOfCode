@@ -23,8 +23,7 @@ struct Problem {
 #[must_use]
 fn parse_input(input: &str) -> Vec<Problem> {
     fn num_list(x: &str) -> impl Iterator<Item = u16> + '_ {
-        let parse = |x: &str| x.parse().expect("All values should be integers");
-        x[1..x.len() - 1].split(',').map(parse)
+        utils_rust::parse::value_list_comma(&x[1..x.len() - 1])
     }
     input
         .split_terminator('\n')
