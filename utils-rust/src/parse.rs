@@ -80,6 +80,7 @@ macro_rules! impl_str2d {
     };
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Str2D<'a> {
     buffer: &'a str,
     cols: usize,
@@ -102,6 +103,7 @@ impl<'a> Str2D<'a> {
     impl_str2d!(const);
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct String2D {
     buffer: String,
     cols: usize,
