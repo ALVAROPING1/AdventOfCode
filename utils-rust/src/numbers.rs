@@ -5,8 +5,7 @@ pub fn lcm(first: usize, second: usize) -> usize {
 
 #[must_use]
 pub fn gcd(first: usize, second: usize) -> usize {
-    let mut max = first.max(second);
-    let mut min = first.min(second);
+    let (mut min, mut max) = min_max(first, second);
 
     loop {
         let res = max % min;
@@ -19,7 +18,7 @@ pub fn gcd(first: usize, second: usize) -> usize {
     }
 }
 
-// Create an iterator through the positions of 1s in the number
+/// Create an iterator through the positions of 1s in the number
 pub fn iter_ones(mut value: usize) -> impl Iterator<Item = usize> {
     std::iter::from_fn(move || {
         if value == 0 {
@@ -30,4 +29,13 @@ pub fn iter_ones(mut value: usize) -> impl Iterator<Item = usize> {
         value ^= 1 << i;
         Some(i as usize)
     })
+}
+
+/// Get the (min, max) of a pair of values
+pub fn min_max<T: Ord>(a: T, b: T) -> (T, T) {
+    if a <= b {
+        (a, b)
+    } else {
+        (b, a)
+    }
 }

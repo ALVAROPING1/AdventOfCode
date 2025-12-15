@@ -3,8 +3,9 @@ use std::error::Error;
 use itertools::Itertools;
 
 use crate::prelude::*;
+use utils_rust::numbers::min_max;
 
-type Point = (isize, isize);
+type Point = (usize, usize);
 
 pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
     let points = parse_input(input);
@@ -15,7 +16,7 @@ pub fn run(input: &str) -> Result<Solution, Box<dyn Error>> {
 
 #[must_use]
 fn parse_input(input: &str) -> Vec<Point> {
-    let parse = |x: &str| -> isize { x.parse().expect("All values should be integers") };
+    let parse = |x: &str| -> usize { x.parse().expect("All values should be integers") };
     input
         .split_terminator('\n')
         .map(|line| {
@@ -28,8 +29,8 @@ fn parse_input(input: &str) -> Vec<Point> {
 }
 
 #[must_use]
-const fn size((a, b): (&Point, &Point)) -> usize {
-    (a.0.abs_diff(b.0) + 1) * (a.1.abs_diff(b.1) + 1)
+const fn size((ax, bx): Point, (ay, by): Point) -> usize {
+    (bx - ax + 1) * (by - ay + 1)
 }
 
 #[must_use]
@@ -37,71 +38,40 @@ fn part1(points: &[Point]) -> usize {
     points
         .iter()
         .tuple_combinations()
-        .map(size)
+        .map(|(&(x1, y1), &(x2, y2))| size(min_max(x1, x2), min_max(y1, y2)))
         .max()
         .expect("There should be a solution")
 }
 
-fn is_point_on_line((px, py): Point, (x1, y1): Point, (x2, y2): Point) -> bool {
-    // NOTE: lines can only be vertical or horizontal from problem statement
-    (px >= x1.min(x2) && px <= x1.max(x2)) && (py >= y1.min(y2) && py <= y1.max(y2))
-}
-
-fn is_point_inside(px: isize, py: isize, points: &[Point]) -> bool {
-    let mut inside = false;
-    for (&(x1, y1), &(x2, y2)) in points.iter().circular_tuple_windows() {
-        if is_point_on_line((px, py), (x1, y1), (x2, y2)) {
-            return true;
-        }
-        // Count the parity of vertical lines a ray sent from the point to the right would cross.
-        // Any point within the polygon will result in an odd amount of line crosses
-        if (y1 > py) != (y2 > py) && px < x1 {
-            inside = !inside;
-        }
-    }
-    inside
-}
-
-fn do_lines_intersect(a1: Point, a2: Point, b1: Point, b2: Point) -> bool {
-    // Calculate the side c is at from the line (a, b)
-    let get_orient = |(ax, ay), (bx, by), (cx, cy)| {
-        let v: isize = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-        v.signum()
-    };
-    let o1 = get_orient(a1, a2, b1) * get_orient(a1, a2, b2);
-    let o2 = get_orient(b1, b2, a1) * get_orient(b1, b2, a2);
-    o1 < 0 && o2 < 0
-}
-
+/// Check if the rectangle doesn't intersect with any of the lines in the polygon
+///
+/// NOTE: this only guarantees none of the sides of the polygon intersects the rectangle, i.e. the
+/// rectangle is fully inside/outside of the polygon. However, that's enough for the input cases
+#[must_use]
 fn is_rect_inside((x1, y1): Point, (x2, y2): Point, points: &[Point]) -> bool {
-    // All corners have to be inside the polygon
-    let corners = [(x1, y1), (x1, y2), (x2, y1), (x2, y2)];
-    let corners_inside = corners
+    !points
         .iter()
-        .all(|&(cx, cy)| is_point_inside(cx, cy, points));
-    if !corners_inside {
-        return false;
-    }
-    // None of the polygon's edges must intersect the edges of the rectangle
-    let rect_edges = [
-        ((x1, y1), (x2, y1)),
-        ((x2, y1), (x2, y2)),
-        ((x2, y2), (x1, y2)),
-        ((x1, y2), (x1, y1)),
-    ];
-    points.iter().circular_tuple_windows().all(|(&p1, &p2)| {
-        rect_edges
-            .iter()
-            .all(|&(start, end)| !do_lines_intersect(start, end, p1, p2))
-    })
+        .circular_tuple_windows()
+        .any(|(&(px1, py1), &(px2, py2))| {
+            let px = min_max(px1, px2);
+            let py = min_max(py1, py2);
+            px.0 < x2 && py.0 < y2 && px.1 > x1 && py.1 > y1
+        })
 }
 
 fn part2(points: &[Point]) -> usize {
     points
         .iter()
         .tuple_combinations()
-        .filter(|(&a, &b)| is_rect_inside(a, b, points))
-        .map(size)
-        .max()
-        .expect("There should be a solution")
+        .map(|(&(x1, y1), &(x2, y2))| (min_max(x1, x2), min_max(y1, y2)))
+        .fold(0, |acc, ((x1, x2), (y1, y2))| {
+            // Calculating the area is significantly cheaper than calculating whether the rectangle
+            // is contained in the polygon, so calculate that first and only check if it's
+            // contained in the polygon if it could give a bigger area
+            let size = size((x1, x2), (y1, y2));
+            if acc >= size || !is_rect_inside((x1, y1), (x2, y2), points) {
+                return acc;
+            }
+            size
+        })
 }
