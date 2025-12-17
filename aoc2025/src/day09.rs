@@ -3,7 +3,7 @@ use std::error::Error;
 use itertools::Itertools;
 
 use crate::prelude::*;
-use utils_rust::numbers::min_max;
+use utils_rust::{numbers::min_max, NArray};
 
 type Point = (usize, usize);
 
@@ -99,8 +99,7 @@ fn solve_areas(points: &[Point]) -> usize {
         .map(|(x, y)| (transform(&x_ids, x), transform(&y_ids, y)))
         .collect_vec();
     // Create grid with the state of each position
-    let mut map = vec![0u8; x_ids.len() * y_ids.len()];
-    let idx = |y: usize, x: usize| y * x_ids.len() + x;
+    let mut map = NArray::new(0u8, [y_ids.len(), x_ids.len()]);
     // Iterate through vertical segments of the polygon
     for (&(ax, ay), &(bx, by)) in points.iter().circular_tuple_windows() {
         if ax == bx {
@@ -108,10 +107,10 @@ fn solve_areas(points: &[Point]) -> usize {
             // For each cell in the segment, create a bitmask where the 1st bit indicates whether
             // the cell is connected to the one below, and the 2nd bit indicates whether the cell
             // is connected to the one above
-            map[idx(maxy, ax)] = 0b01;
-            map[idx(miny, ax)] = 0b10;
+            map[[maxy, ax]] = 0b01;
+            map[[miny, ax]] = 0b10;
             for y in miny + 1..maxy {
-                map[idx(y, ax)] = 0b11;
+                map[[y, ax]] = 0b11;
             }
         }
     }
@@ -123,15 +122,14 @@ fn solve_areas(points: &[Point]) -> usize {
     for y in 0..y_ids.len() {
         let mut prefix_xor = 0;
         for x in 0..x_ids.len() {
-            let i = idx(y, x);
-            prefix_xor ^= map[i];
-            map[i] = u8::from(prefix_xor > 0);
+            prefix_xor ^= map[[y, x]];
+            map[[y, x]] = u8::from(prefix_xor > 0);
         }
     }
 
     // Use 2D prefix sums to be able to quickly query the area within a given rectangle inside the
     // polygon
-    let submatrix = SubMatrix::new(&map, y_ids.len(), x_ids.len());
+    let submatrix = SubMatrix::new(&map);
     // Calculate the maximum area of rectangles fully inside the polygon
     points
         .iter()
@@ -144,34 +142,28 @@ fn solve_areas(points: &[Point]) -> usize {
 }
 
 /// Calculate submatrix sums quickly, given upper-left and lower-right corners (half-open)
-struct SubMatrix {
-    p: Vec<isize>,
-    cols: usize,
-}
+struct SubMatrix(NArray<isize, 2>);
 
 impl SubMatrix {
     /// Create a new submatrix from a `RxC` matrix
-    fn new(values: &[u8], r: usize, c: usize) -> Self {
-        assert_eq!(values.len(), r * c);
-        let mut p = vec![0; (c + 1) * (r + 1)];
-        let idx = |ri, ci| ri * (c + 1) + ci;
+    fn new(values: &NArray<u8, 2>) -> Self {
+        let dims = values.dimensions();
+        let mut p = NArray::new(0, [dims[0] + 1, dims[1] + 1]);
         // For each position (x, y) calculate the sum of the rectangle between (0, 0) and (x-1, y-1)
         // using bottom-up dynamic programming, as the sum of the value at the given position and
         // the values of the rectangles above and to the left, minus their intersection
-        for ri in 0..r {
-            for ci in 0..c {
-                let v = isize::from(values[ri * c + ci]);
-                p[idx(ri + 1, ci + 1)] =
-                    v + p[idx(ri, ci + 1)] + p[idx(ri + 1, ci)] - p[idx(ri, ci)];
+        for ri in 0..dims[0] {
+            for ci in 0..dims[1] {
+                let v = isize::from(values[[ri, ci]]);
+                p[[ri + 1, ci + 1]] = v + p[[ri, ci + 1]] + p[[ri + 1, ci]] - p[[ri, ci]];
             }
         }
-        Self { p, cols: c + 1 }
+        Self(p)
     }
 
     /// Get the sum of the values within a given rectangle
     fn sum(&self, u: usize, l: usize, d: usize, r: usize) -> usize {
-        let idx = |ri, ci| ri * self.cols + ci;
-        let res = self.p[idx(d, r)] - self.p[idx(d, l)] - self.p[idx(u, r)] + self.p[idx(u, l)];
+        let res = self.0[[d, r]] - self.0[[d, l]] - self.0[[u, r]] + self.0[[u, l]];
         res.try_into().expect("The areas should be positive")
     }
 }
